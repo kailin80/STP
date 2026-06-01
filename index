@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>球場生態圈：機密情報局</title>
+  <!-- Google Fonts: Nunito -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Tailwind Configuration for Neo-brutalism Style -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cBlue: '#3B5998',
+            cRed: '#FF6B6B',
+            cYellow: '#FFD93D',
+            cGreen: '#20BF6B',
+            cPurple: '#6C5CE7',
+            cBg: '#F8F9FA'
+          },
+          boxShadow: {
+            'neo-blue': '4px 4px 0px 0px #3B5998',
+            'neo-red': '4px 4px 0px 0px #FF6B6B',
+            'neo-yellow': '4px 4px 0px 0px #FFD93D',
+            'neo-green': '4px 4px 0px 0px #20BF6B',
+            'neo-purple': '4px 4px 0px 0px #6C5CE7',
+          },
+          fontFamily: {
+            sans: ['Nunito', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  
+  <style>
+    /* 點擊按鈕時的硬陰影下壓動畫 */
+    .btn-press:active {
+      transform: translate(4px, 4px);
+      box-shadow: 0px 0px 0px 0px transparent !important;
+    }
+    .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #F8F9FA; border-left: 2px solid #3B5998; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #3B5998; }
+  </style>
+</head>
+<body class="bg-cBg text-cBlue font-sans min-h-screen overflow-x-hidden selection:bg-cYellow selection:text-cBlue">
+
+  <!-- ==================== VIEW 1: 職業選單 ==================== -->
+  <div id="view1" class="container mx-auto px-6 py-12 max-w-5xl">
+    <header class="text-center mb-16">
+      <div class="inline-block bg-white border-2 border-cBlue rounded-2xl px-8 py-4 shadow-neo-blue mb-6">
+        <h1 class="text-4xl md:text-5xl font-black tracking-wide">⚾ 球場生態圈：機密情報局 🕵️‍♂️</h1>
+      </div>
+      <p class="text-xl font-bold opacity-80 mt-4">請選擇你的特務身分，學習如何合成完美的情報咒語！</p>
+    </header>
+
+    <div id="roleGrid" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <!-- 職業卡片將由 JS 動態生成 -->
+    </div>
+  </div>
+
+  <!-- ==================== VIEW 2: 咒語合成器 ==================== -->
+  <div id="view2" class="container mx-auto px-6 py-8 max-w-4xl hidden">
+    <!-- Top Bar -->
+    <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+      <div class="bg-white border-2 border-cBlue rounded-2xl px-6 py-3 shadow-neo-blue flex items-center gap-3">
+        <span class="text-2xl" id="cheatSheetIcon"></span>
+        <div>
+          <p class="text-sm font-bold opacity-70">目前職業小抄</p>
+          <p class="text-xl font-black" id="cheatSheetName">載入中...</p>
+        </div>
+      </div>
+      <button onclick="resetApp()" class="bg-cRed text-white border-2 border-cBlue rounded-2xl px-6 py-3 shadow-neo-blue font-black text-lg transition-transform btn-press hover:bg-red-400">
+        🔄 重新開始
+      </button>
+    </div>
+
+    <!-- 主體內容：四色區塊 -->
+    <div class="space-y-6 mb-32">
+      
+      <!-- 藍色區塊 -->
+      <div class="bg-blue-50 border-2 border-cBlue rounded-2xl p-6 shadow-neo-blue relative">
+        <h2 class="text-2xl font-black mb-2 flex items-center gap-2">🔵 步驟 1：我在哪裡？</h2>
+        <p class="font-bold opacity-80 mb-4 bg-white inline-block px-3 py-1 border-2 border-cBlue rounded-lg">句型：我正在【地點】...</p>
+        <div id="options-blue-loc" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+      </div>
+
+      <!-- 黃色區塊 -->
+      <div class="bg-yellow-50 border-2 border-cBlue rounded-2xl p-6 shadow-neo-yellow relative">
+        <h2 class="text-2xl font-black mb-2 flex items-center gap-2">🟡 步驟 2：說話對象與語氣</h2>
+        <p class="font-bold opacity-80 mb-4 bg-white inline-block px-3 py-1 border-2 border-cBlue rounded-lg">句型：我要對【對象】用【語氣】說話...</p>
+        <div class="space-y-4">
+          <div>
+            <p class="font-bold mb-2">對象：</p>
+            <div id="options-yellow-target" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+          </div>
+          <div>
+            <p class="font-bold mb-2">語氣：</p>
+            <div id="options-yellow-tone" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 綠色區塊 (初始上鎖) -->
+      <div id="block-green" class="bg-green-50 border-2 border-cBlue rounded-2xl p-6 shadow-neo-green relative opacity-50 pointer-events-none transition-all duration-500">
+        <!-- 鎖頭遮罩 -->
+        <div id="lock-green" class="absolute inset-0 z-10 bg-white/40 backdrop-blur-sm rounded-2xl flex items-center justify-center">
+          <span class="text-6xl drop-shadow-lg">🔒</span>
+        </div>
+        <h2 class="text-2xl font-black mb-2 flex items-center gap-2">🟢 步驟 3：使用工具與動作</h2>
+        <p class="font-bold opacity-80 mb-4 bg-white inline-block px-3 py-1 border-2 border-cBlue rounded-lg">句型：我拿出了『工具』，並且『動作』...</p>
+        <div class="space-y-4">
+          <div>
+            <p class="font-bold mb-2">工具：</p>
+            <div id="options-green-tool" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+          </div>
+          <div>
+            <p class="font-bold mb-2">動作：</p>
+            <div id="options-green-action" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 紅色區塊 (初始上鎖) -->
+      <div id="block-red" class="bg-red-50 border-2 border-cBlue rounded-2xl p-6 shadow-neo-red relative opacity-50 pointer-events-none transition-all duration-500">
+        <!-- 鎖頭遮罩 -->
+        <div id="lock-red" class="absolute inset-0 z-10 bg-white/40 backdrop-blur-sm rounded-2xl flex items-center justify-center">
+          <span class="text-6xl drop-shadow-lg">🔒</span>
+        </div>
+        <h2 class="text-2xl font-black mb-2 flex items-center gap-2">🔴 步驟 4：套用特殊格式</h2>
+        <p class="font-bold opacity-80 mb-4 bg-white inline-block px-3 py-1 border-2 border-cBlue rounded-lg">為情報加上最後的偽裝！</p>
+        <div id="options-red-format" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+      </div>
+
+    </div>
+
+    <!-- 底部生成區 (Fixed Bottom) -->
+    <div class="fixed bottom-0 left-0 w-full bg-cBg border-t-4 border-cBlue p-4 z-50">
+      <div class="container mx-auto max-w-4xl flex flex-col md:flex-row gap-4 items-end">
+        <!-- 輸出對話框 -->
+        <div class="flex-grow w-full bg-white border-2 border-cBlue rounded-2xl p-4 shadow-neo-purple min-h-[120px] max-h-[150px] overflow-y-auto custom-scrollbar">
+          <p class="text-sm font-bold text-cPurple mb-1">🤖 系統輸出結果：</p>
+          <p id="outputBox" class="text-lg font-bold text-gray-400">等待生成情報中...</p>
+        </div>
+        <!-- 主按鈕 -->
+        <button id="generateBtn" onclick="handleGenerate()" class="w-full md:w-auto shrink-0 bg-cYellow text-cBlue border-4 border-cBlue rounded-2xl px-6 py-6 shadow-neo-blue font-black text-xl transition-transform btn-press hover:bg-yellow-300">
+          生成內部測試草稿 (回合 1)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== JAVASCRIPT 邏輯 ==================== -->
+  <script>
+    // --- Database (Mock JSON) ---
+    const DB = {
+      common: {
+        blueLoc: ["人山人海的觀眾席旁", "熱呼呼的紅土球場上", "充滿螢幕的冷氣房辦公室", "全場最吸睛的球場邊舞台上"],
+        yellowTarget: ["剛打出全壘打的小學生", "超級生氣的總教練", "第一次看球的 3 歲小嬰兒", "聽不懂地球語言的外星人"],
+        yellowTone: ["溫柔瘋狂稱讚的語氣", "嚴肅像機器人的專業語氣", "神秘像講鬼故事的語氣", "熱血沸騰大吼大叫的語氣"],
+        redFormat: ["裡面必須大量使用 Emoji", "前面必須幫自己取一個誇張動漫稱號", "寫得像一首押韻的詩", "每句話結尾要有動物叫聲"]
+      },
+      roles: [
+        { 
+          id: 'role1', icon: '💻', name: "數據分析師", weapon: "平板電腦與落點分析圖", task: "盯著電腦算數學，找出打者弱點", 
+          greenTools: ["平板電腦與落點分析圖", "寫滿密碼的筆記本", "本壘板小刷子", "大型洗衣機"], 
+          greenActions: ["盯著螢幕算數學，告訴投手打者弱點", "把球員優缺點寫成報告給老闆", "瘋狂跳舞帶動氣氛", "畫出筆直界外線"] 
+        },
+        { 
+          id: 'role2', icon: '🩹', name: "運動防護員", weapon: "冰敷袋、肌貼", task: "衝上場急救、賽前包紮", 
+          greenTools: ["急救冰敷袋與醫療剪刀", "白色肌貼與彈性繃帶", "大聲公與彩球", "測速槍與碼錶"], 
+          greenActions: ["衝上場幫抽筋的球員冰敷", "在休息室幫球員的腳踝包紮", "蹲在壕溝裡拍球員照片", "在觀眾席偷記球速"] 
+        }
+      ]
+    };
+
+    // --- State Management ---
+    let state = {
+      currentRole: null,
+      round: 1, // 1, 2, 3
+      selections: {
+        blueLoc: null,
+        yellowTarget: null, yellowTone: null,
+        greenTool: null, greenAction: null,
+        redFormat: null
+      }
+    };
+
+    // --- Render Functions ---
+
+    // 初始化職業卡片
+    function initRoles() {
+      const grid = document.getElementById('roleGrid');
+      grid.innerHTML = '';
+      DB.roles.forEach(role => {
+        const card = document.createElement('div');
+        card.className = "bg-white border-4 border-cBlue rounded-2xl p-6 shadow-neo-blue cursor-pointer transition-transform hover:-translate-y-2";
+        card.innerHTML = `
+          <div class="text-5xl mb-4">${role.icon}</div>
+          <h2 class="text-3xl font-black mb-2">${role.name}</h2>
+          <div class="bg-blue-50 border-2 border-cBlue rounded-lg p-3 mt-4">
+            <p class="font-bold text-sm"><span class="text-cRed">⚔️ 專屬武器：</span>${role.weapon}</p>
+          </div>
+          <div class="bg-yellow-50 border-2 border-cBlue rounded-lg p-3 mt-2">
+            <p class="font-bold text-sm"><span class="text-cGreen">🎯 核心任務：</span>${role.task}</p>
+          </div>
+        `;
+        card.onclick = () => selectRole(role);
+        grid.appendChild(card);
+      });
+    }
+
+    // 渲染通用選項按鈕
+    function renderOptions(containerId, options, key, activeBgColor, activeTextColor) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = '';
+      options.forEach(opt => {
+        const btn = document.createElement('button');
+        // 基本樣式 (白底)
+        btn.className = `w-full text-left bg-white border-2 border-cBlue rounded-xl px-4 py-3 font-bold transition-colors btn-press shadow-sm`;
+        btn.innerText = opt;
+        btn.onclick = () => {
+          // Update state
+          state.selections[key] = opt;
+          // Re-render choices to update active state
+          renderOptions(containerId, options, key, activeBgColor, activeTextColor);
+        };
+
+        // 選中狀態樣式
+        if (state.selections[key] === opt) {
+          btn.classList.remove('bg-white');
+          btn.classList.add(activeBgColor, activeTextColor);
+        }
+
+        container.appendChild(btn);
+      });
+    }
+
+    // --- Core Actions ---
+
+    function selectRole(role) {
+      state.currentRole = role;
+      document.getElementById('cheatSheetIcon').innerText = role.icon;
+      document.getElementById('cheatSheetName').innerText = role.name;
+      
+      // 載入該職業特有的綠色選項
+      renderOptions('options-green-tool', role.greenTools, 'greenTool', 'bg-cGreen', 'text-white');
+      renderOptions('options-green-action', role.greenActions, 'greenAction', 'bg-cGreen', 'text-white');
+      
+      // 載入通用選項
+      renderOptions('options-blue-loc', DB.common.blueLoc, 'blueLoc', 'bg-cBlue', 'text-white');
+      renderOptions('options-yellow-target', DB.common.yellowTarget, 'yellowTarget', 'bg-cYellow', 'text-cBlue');
+      renderOptions('options-yellow-tone', DB.common.yellowTone, 'yellowTone', 'bg-cYellow', 'text-cBlue');
+      renderOptions('options-red-format', DB.common.redFormat, 'redFormat', 'bg-cRed', 'text-white');
+
+      // 切換畫面
+      document.getElementById('view1').classList.add('hidden');
+      document.getElementById('view2').classList.remove('hidden');
+      window.scrollTo(0, 0);
+    }
+
+    function resetApp() {
+      state = {
+        currentRole: null, round: 1,
+        selections: { blueLoc: null, yellowTarget: null, yellowTone: null, greenTool: null, greenAction: null, redFormat: null }
+      };
+      
+      // 恢復上鎖狀態
+      document.getElementById('block-green').classList.add('opacity-50', 'pointer-events-none');
+      document.getElementById('lock-green').classList.remove('hidden');
+      document.getElementById('block-red').classList.add('opacity-50', 'pointer-events-none');
+      document.getElementById('lock-red').classList.remove('hidden');
+      
+      // 重置 UI
+      document.getElementById('outputBox').innerText = '等待生成情報中...';
+      document.getElementById('outputBox').classList.add('text-gray-400');
+      document.getElementById('outputBox').classList.remove('text-cBlue');
+      
+      updateBtnText();
+      
+      document.getElementById('view2').classList.add('hidden');
+      document.getElementById('view1').classList.remove('hidden');
+    }
+
+    function updateBtnText() {
+      const btn = document.getElementById('generateBtn');
+      if(state.round === 1) btn.innerText = "生成內部測試草稿 (回合 1)";
+      if(state.round === 2) btn.innerText = "生成內部測試草稿 (回合 2)";
+      if(state.round === 3) btn.innerText = "生成最終機密情報 (回合 3)";
+      if(state.round > 3) btn.innerText = "🎉 任務完成！點此重新挑戰";
+    }
+
+    // --- Mock Data Generator (The Core Logic) ---
+
+    function getYellowPrefix(tone) {
+      if(tone === "溫柔瘋狂稱讚的語氣") return "哇！你真的是太棒了！";
+      if(tone === "嚴肅像機器人的專業語氣") return "偵測到目標。請注意。";
+      if(tone === "神秘像講鬼故事的語氣") return "嘻嘻...你聽得到我的聲音嗎...";
+      if(tone === "熱血沸騰大吼大叫的語氣") return "喔喔喔喔！燃燒吧！";
+      return "你好，";
+    }
+
+    function generateMockResponse() {
+      const s = state.selections;
+      const r = state.currentRole;
+      let finalString = "";
+
+      if (state.round === 1) {
+        // Validation
+        if(!s.blueLoc || !s.yellowTarget || !s.yellowTone) {
+          alert("特務！請先完成藍色與黃色的選擇！");
+          return;
+        }
+        const prefix = getYellowPrefix(s.yellowTone);
+        finalString = `${prefix} 我要告訴你一個秘密，其實我就是棒球場的【${r.name}】啦！我平常都待在【${s.blueLoc}】，這就是我的工作！`;
+        
+        // Advance to Round 2
+        state.round = 2;
+        document.getElementById('block-green').classList.remove('opacity-50', 'pointer-events-none');
+        document.getElementById('lock-green').classList.add('hidden');
+      
+      } 
+      else if (state.round === 2) {
+        if(!s.greenTool || !s.greenAction) {
+          alert("特務！請先挑選你要使用的工具和動作！");
+          return;
+        }
+        const prefix = getYellowPrefix(s.yellowTone);
+        finalString = `${prefix} 沒錯，我就是【${r.name}】！我正在【${s.blueLoc}】。我剛剛拿出了我的『${s.greenTool}』，並且『${s.greenAction}』。我很厲害吧！`;
+        
+        // Advance to Round 3
+        state.round = 3;
+        document.getElementById('block-red').classList.remove('opacity-50', 'pointer-events-none');
+        document.getElementById('lock-red').classList.add('hidden');
+      }
+      else if (state.round === 3) {
+        if(!s.redFormat) {
+          alert("特務！請為情報加上最後的偽裝格式！");
+          return;
+        }
+        const prefix = getYellowPrefix(s.yellowTone);
+        let baseString = `${prefix} 我正在【${s.blueLoc}】執行最高機密任務。我拿出了我的『神秘法寶』，並且『${s.greenAction}』。你絕對猜不到我是做什麼的！`;
+
+        // Apply Red Formatting
+        if (s.redFormat === "裡面必須大量使用 Emoji") {
+          const emojis = ['⚾', '🔥', '✨', '😎'];
+          baseString = baseString.replace(/([。！？])/g, (match) => {
+            const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+            return match + randomEmoji;
+          });
+        } 
+        else if (s.redFormat === "前面必須幫自己取一個誇張動漫稱號") {
+          baseString = "【漆黑的球場守護者】\n" + baseString;
+        }
+        else if (s.redFormat === "寫得像一首押韻的詩") {
+          baseString += "\n任務完成真開心，我的身分是機密！";
+        }
+        else if (s.redFormat === "每句話結尾要有動物叫聲") {
+          baseString = baseString.replace(/([。！？])/g, (match) => {
+             const sound = Math.random() > 0.5 ? "(汪汪！)" : "(喵！)";
+             return sound + match;
+          });
+        }
+        finalString = baseString;
+        state.round = 4; // Done
+      } else {
+        resetApp();
+        return;
+      }
+
+      // Display Output
+      const outputBox = document.getElementById('outputBox');
+      outputBox.classList.remove('text-gray-400');
+      outputBox.classList.add('text-cBlue', 'whitespace-pre-line');
+      outputBox.innerText = finalString;
+      
+      updateBtnText();
+    }
+
+    function handleGenerate() {
+      generateMockResponse();
+    }
+
+    // Init Application
+    window.onload = initRoles;
+
+  </script>
+</body>
+</html>
