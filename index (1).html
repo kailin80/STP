@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: #F8F9FA;
+            color: #3B5998;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        .neo-card {
+            background: white;
+            border: 2px solid #3B5998;
+            border-radius: 1rem;
+            box-shadow: 4px 4px 0px 0px #3B5998;
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+            cursor: pointer;
+        }
+        .neo-card:hover {
+            transform: translateY(-2px);
+            background: #f8fafc;
+        }
+        .neo-card:active {
+            transform: translateY(2px);
+            box-shadow: 2px 2px 0px 0px #3B5998;
+        }
+        .neo-btn-inactive {
+            background: white;
+            border: 2px solid #3B5998;
+            border-radius: 0.75rem;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            color: #3B5998;
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-align: left;
+            transition: all 0.15s ease;
+        }
+        .neo-btn-inactive:hover {
+            background: #f1f5f9;
+        }
+        .neo-btn-active {
+            background: #3B5998;
+            color: white;
+            border: 2px solid #3B5998;
+            border-radius: 0.75rem;
+            padding: 0.5rem 1rem;
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .app-container {
+            width: 100%;
+            max-width: 1024px;
+            height: 100vh;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container p-8">
+        <!-- Header -->
+        <header class="flex justify-between items-center mb-8 shrink-0">
+            <h1 class="text-3xl font-bold tracking-tight">球場生態圈：機密情報局</h1>
+            <div id="top-nav" class="hidden flex items-center gap-4">
+                <div class="bg-white px-4 py-2 rounded-2xl border-2 border-[#3B5998] shadow-[4px_4px_0px_0px_#3B5998] flex items-center gap-3">
+                    <span id="current-role-icon" class="text-xl"></span>
+                    <span id="current-role-name" class="font-bold"></span>
+                </div>
+                <button onclick="resetGame()" class="bg-white border-2 border-[#3B5998] rounded-xl px-4 py-2 text-[#3B5998] font-semibold hover:bg-slate-100 cursor-pointer">
+                    🔄 重新開始
+                </button>
+            </div>
+        </header>
+
+        <div class="flex-1 flex flex-col overflow-hidden">
+            
+            <!-- View 1: Group Selection -->
+            <div id="view-1-groups" class="flex-1 flex flex-col items-center justify-center overflow-auto pb-10">
+                <div class="w-full flex flex-col items-center justify-center min-h-[400px]">
+                    <p class="text-xl mb-10 text-[#3B5998]/80 font-semibold mt-14">請選擇你在球場中的「機密身分」...</p>
+                    <div class="grid grid-cols-2 gap-6 w-full max-w-4xl" id="group-grid"></div>
+                </div>
+            </div>
+
+            <!-- View 1.5: Role Selection -->
+            <div id="view-1-roles" class="hidden flex-1 flex flex-col items-center justify-center overflow-auto pb-10 relative">
+                <div class="w-full flex flex-col items-center justify-center min-h-[400px] relative">
+                    <button onclick="backToGroups()" class="absolute left-0 top-0 mt-2 bg-white border-2 border-[#3B5998] rounded-xl px-4 py-2 text-[#3B5998] font-semibold hover:bg-slate-100 cursor-pointer shadow-[2px_2px_0px_0px_#3B5998] active:translate-y-[1px] active:shadow-none transition-all">
+                        ⬅ 返回職群列表
+                    </button>
+                    <p id="role-selection-title" class="text-xl mb-10 text-[#3B5998]/80 font-semibold mt-14"></p>
+                    <div class="grid grid-cols-3 gap-6 w-full max-w-5xl" id="role-grid"></div>
+                </div>
+            </div>
+
+            <!-- View 2: Prompt Builder -->
+            <div id="view-2" class="hidden flex-1 flex gap-8 overflow-hidden w-full h-full pb-4">
+                
+                <!-- Left Column -->
+                <div class="flex-[3] flex flex-col gap-4 overflow-y-auto pr-2 pb-2">
+                    <div class="flex flex-col gap-4">
+                        
+                        <!-- Blue Block -->
+                        <div class="bg-blue-50/80 p-6 relative border-2 border-[#3B5998] rounded-2xl shadow-[4px_4px_0px_0px_#3B5998]">
+                            <div class="text-lg md:text-xl font-bold mb-6 text-[#3B5998] leading-loose">
+                                我現在待在 <span id="text-location" class="text-blue-600 border-b-[3px] border-blue-500 pb-1 px-4 min-w-[120px] inline-block text-center transition-all empty:w-32"></span> 執行任務。
+                            </div>
+                            <div class="flex flex-wrap gap-3" id="options-blue"></div>
+                        </div>
+
+                        <!-- Yellow Block -->
+                        <div class="bg-amber-50/80 p-6 relative border-2 border-[#3B5998] rounded-2xl shadow-[4px_4px_0px_0px_#FFD93D]">
+                            <div class="text-lg md:text-xl font-bold mb-6 text-amber-900 leading-loose">
+                                這時有一位 <span id="text-target" class="text-amber-600 border-b-[3px] border-amber-500 pb-1 px-4 min-w-[120px] inline-block text-center transition-all empty:w-32"></span> 走過來，<br>
+                                我決定用 <span id="text-tone" class="text-amber-600 border-b-[3px] border-amber-500 pb-1 px-4 min-w-[120px] inline-block text-center transition-all empty:w-32"></span> 的方式對他說話。
+                            </div>
+                            <div class="flex flex-col gap-4">
+                                <div class="flex flex-wrap gap-3" id="options-yellow-target"></div>
+                                <div class="flex flex-wrap gap-3" id="options-yellow-tone"></div>
+                            </div>
+                        </div>
+
+                        <!-- Green Block -->
+                        <div id="block-green" class="bg-emerald-50/80 p-6 relative border-2 border-[#3B5998] rounded-2xl shadow-[4px_4px_0px_0px_#20BF6B] transition-opacity opacity-50 pointer-events-none">
+                            <div id="lock-green" class="absolute inset-0 flex items-center justify-center bg-white/70 backdrop-blur-[2px] rounded-2xl z-10 transition-opacity">
+                                <span class="text-4xl shadow-sm">🔒</span>
+                            </div>
+                            <div class="text-lg md:text-xl font-bold mb-6 text-emerald-900 leading-loose">
+                                為了處理狀況，我拿出了 <span id="text-tool" class="text-emerald-600 border-b-[3px] border-emerald-500 pb-1 px-4 min-w-[120px] inline-block text-center transition-all empty:w-32"></span> ，<br>並且做出了 <span id="text-action" class="text-emerald-600 border-b-[3px] border-emerald-500 pb-1 px-4 min-w-[120px] inline-block text-center transition-all empty:w-32"></span> 的動作。
+                            </div>
+                            <div class="flex flex-col gap-4">
+                                <div class="flex flex-wrap gap-3" id="options-green-tool"></div>
+                                <div class="flex flex-wrap gap-3" id="options-green-action"></div>
+                            </div>
+                        </div>
+
+                        <!-- Red Block -->
+                        <div id="block-red" class="bg-rose-50/80 p-6 relative border-2 border-[#3B5998] rounded-2xl shadow-[4px_4px_0px_0px_#FF6B6B] transition-opacity opacity-50 pointer-events-none">
+                            <div id="lock-red" class="absolute inset-0 flex items-center justify-center bg-white/70 backdrop-blur-[2px] rounded-2xl z-10 transition-opacity">
+                                <span class="text-4xl shadow-sm">🔒</span>
+                            </div>
+                            <div class="text-lg md:text-xl font-bold mb-6 text-rose-900 leading-loose">
+                                【最高機密規則】我的報告 <span id="text-format" class="text-rose-600 border-b-[3px] border-rose-500 pb-1 px-4 min-w-[120px] inline-block text-center transition-all empty:w-32"></span> 。
+                            </div>
+                            <div class="flex flex-wrap gap-3" id="options-red"></div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="flex-[2] flex flex-col gap-4 h-full pb-2">
+                    <div class="bg-white border-2 border-[#3B5998] rounded-2xl shadow-[4px_4px_0px_0px_#3B5998] flex-1 p-6 flex flex-col overflow-hidden">
+                        <h3 class="font-bold mb-4 border-b-2 border-slate-100 pb-2 text-[#3B5998]">📡 機密情報回傳中心</h3>
+                        <div id="chat-output" class="flex-1 overflow-y-auto space-y-4 pr-2 text-sm flex flex-col scroll-smooth"></div>
+                    </div>
+                    
+                    <div>
+                        <button id="submit-btn" onclick="handleGenerate()" disabled class="w-full py-4 bg-[#FFD93D] text-[#3B5998] font-bold text-xl rounded-2xl border-2 border-[#3B5998] shadow-[4px_4px_0px_0px_#3B5998] hover:-translate-y-[2px] active:translate-y-[2px] active:shadow-none transition-transform disabled:opacity-50 disabled:shadow-[4px_4px_0px_0px_#3B5998] disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:active:translate-y-0 cursor-pointer">
+                            生成內部測試草稿 (回合 1)
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const JOB_GROUPS = [
+          {
+            id: "group1",
+            name: "職群一：球員照護與醫療群",
+            description: "除了把球打好，照顧身體與心理也很重要",
+            icon: "🏥",
+            roles: [
+              { name: "運動防護員", icon: "🩹", weapon: "冰敷袋、肌貼", task: "衝上場急救、賽前包紮", green_tools: ["急救冰敷袋與醫療剪刀", "白色肌貼與彈性繃帶", "大聲公與彩球", "測速槍與碼錶"], green_actions: ["衝上場幫抽筋的球員冰敷", "在休息室幫球員的腳踝包紮", "蹲在壕溝裡拍球員照片", "在觀眾席偷記球速"] },
+              { name: "心理諮商師", icon: "🛋️", weapon: "舒壓抱枕", task: "聽球員倒垃圾", green_tools: ["舒壓抱枕", "溫暖的茶", "筆記本", "錄音筆"], green_actions: ["聽球員抱怨", "給予心理建設", "教導放鬆技巧", "紀錄諮商重點"] },
+              { name: "體能訓練師", icon: "🏋️", weapon: "啞鈴與彈力帶", task: "把球員操到沒有極限", green_tools: ["大啞鈴", "超緊彈力帶", "碼錶", "哨子"], green_actions: ["帶著球員衝刺", "計算舉重磅數", "緊盯深蹲姿勢", "大喊加油撐下去"] }
+            ]
+          },
+          {
+            id: "group2",
+            name: "職群二：數據與戰術分析群",
+            description: "用數據看穿對手，制定致勝策略",
+            icon: "📈",
+            roles: [
+              { name: "數據分析師", icon: "💻", weapon: "平板電腦與落點分析圖", task: "盯著電腦算數學，找出打者弱點", green_tools: ["平板電腦與落點分析圖", "寫滿密碼的筆記本", "本壘板小刷子", "大型洗衣機"], green_actions: ["盯著螢幕算數學，告訴投手打者弱點", "把球員優缺點寫成報告給老闆", "瘋狂跳舞帶動氣氛", "畫出筆直界外線"] },
+              { name: "球探", icon: "🕵️", weapon: "測速槍與望遠鏡", task: "在各地球場發掘明日之星", green_tools: ["精密測速槍", "高倍數望遠鏡", "球員名單", "錄影機"], green_actions: ["記錄投手球速", "觀察打擊姿勢", "偷偷打聽球員背景", "寫長篇球探報告"] },
+              { name: "情蒐員", icon: "🕵️‍♂️", weapon: "隱藏式攝影機", task: "收集敵隊影片", green_tools: ["隱藏攝影機", "望遠鏡", "筆電", "無人機"], green_actions: ["剪輯敵方比賽影片", "分析敵方暗號", "開會報告敵方戰術", "潛伏在對手球場"] }
+            ]
+          },
+          {
+            id: "group3",
+            name: "職群三：場館設施與維護群",
+            description: "維持球場完美狀態，讓比賽順利進行",
+            icon: "🏟️",
+            roles: [
+              { name: "場地維護員", icon: "🚜", weapon: "畫線車與土耙", task: "讓紅土與草皮完美無瑕", green_tools: ["畫線車", "平整土耙", "割草機", "灑水軟管"], green_actions: ["畫出筆直的邊線", "用耙子整理紅土", "坐在拖拉機上割草", "幫內野灑適量的水"] },
+              { name: "設備工程師", icon: "🔧", weapon: "萬能工具箱", task: "修理壞掉的喇叭跟螢幕", green_tools: ["大麥克風", "萬用螺絲起子", "電線膠布", "梯子"], green_actions: ["爬梯子修大螢幕", "更換休息室燈泡", "測試廣播系統", "修理壞掉的座椅"] },
+              { name: "保全人員", icon: "👮", weapon: "對講機", task: "保護大家的安全", green_tools: ["無線對講機", "指揮棒", "哨子", "手電筒"], green_actions: ["在外野巡邏", "制止衝進場的球迷", "維持進场秩序", "保護球員上大巴"] }
+            ]
+          },
+          {
+            id: "group4",
+            name: "職群四：行銷與媒體公關群",
+            description: "包裝球隊形象，創造話題與聲量",
+            icon: "📸",
+            roles: [
+              { name: "社群小編", icon: "📱", weapon: "萬能手機", task: "發迷因圖騙讚", green_tools: ["萬能手機", "行動電源", "搞笑面具", "長桿自拍架"], green_actions: ["發搞笑限時動態", "跟球員拍TikTok", "回覆網友留言", "到處尋找發文題材"] },
+              { name: "公關專員", icon: "🤝", weapon: "名片夾", task: "跟廠商與媒體打交道", green_tools: ["厚厚名片夾", "高級筆", "新聞稿", "送禮禮盒"], green_actions: ["接待VIP貴賓", "發布重大新聞稿", "危機處理開記者會", "跟贊助商鞠躬"] },
+              { name: "隨隊攝影師", icon: "📷", weapon: "大砲相機", task: "拍出最帥的瞬間", green_tools: ["超長鏡頭相機", "反光板", "閃光燈", "大容量記憶卡"], green_actions: ["趴在地上拍滑壘", "躲在護網後拍投手", "狂按快門連拍", "修圖修到半夜"] }
+            ]
+          },
+          {
+            id: "group5",
+            name: "職群五：裝備與後勤支援群",
+            description: "打理裝備與生活，讓球員無後顧之憂",
+            icon: "🧢",
+            roles: [
+              { name: "裝備管理員", icon: "⚾", weapon: "大型推車", task: "整理幾百件球衣與球棒", green_tools: ["多層大推車", "洗衣機", "神奇去污劑", "球棒架"], green_actions: ["把超髒球衣洗白", "把球棒排得整整齊齊", "搬運超重的水箱", "幫新球員發裝備"] },
+              { name: "翻譯員", icon: "🗣️", weapon: "隨身筆記本", task: "外籍球員的神之嘴", green_tools: ["翻譯字典", "隨身筆記", "耳機", "潤喉糖"], green_actions: ["在投手丘上同步翻譯", "幫洋將點外賣", "教怪怪的中文", "在記者會上翻譯"] },
+              { name: "廚師", icon: "🍳", weapon: "精準雷射秤", task: "準備超健康又好吃的食物", green_tools: ["平底鍋", "卡路里計算機", "大湯瓢", "果汁機"], green_actions: ["特製高蛋白餐", "大吼別喝含糖飲料", "打好水果冰沙", "計算每口飯的熱量"] }
+            ]
+          },
+          {
+            id: "group6",
+            name: "職群六：賽事營運與娛樂群",
+            description: "帶動現場氣氛，創造最棒的觀賽體驗",
+            icon: "🎉",
+            roles: [
+              { name: "吉祥物", icon: "🐶", weapon: "布偶裝", task: "賣萌與搞笑", green_tools: ["毛茸茸布偶裝", "大水槍", "空氣炮", "小板車"], green_actions: ["倒立翻筋斗", "拿水槍噴球迷", "捉弄轉播攝影師", "騎著小板車滑行"] },
+              { name: "啦啦隊長", icon: "💃", weapon: "大聲公", task: "帶領大家跳應援舞", green_tools: ["強力大聲公", "應援毛巾", "大面旗幟", "擴音喇叭"], green_actions: ["大喊球員名字", "帶頭揮舞大旗", "教球迷跳舞", "站在高台上帶動唱"] },
+              { name: "現場DJ", icon: "🎧", weapon: "混音盤", task: "在最對的時刻放最對的歌", green_tools: ["專業混音盤", "大耳機", "效果器", "麥克風"], green_actions: ["打出全壘打時放火車聲", "放洗腦神曲", "大喊Make Some Noise", "狂刷混音盤"] }
+            ]
+          }
+        ];
+
+        const OPTIONS = {
+          blueLocation: ["人山人海的觀眾席旁", "熱呼呼的紅土球場上", "充滿螢幕的冷氣房辦公室", "全場最吸睛的球場邊舞台上"],
+          yellowTarget: ["剛打出全壘打的小學生", "超級生氣的總教練", "第一次看球的 3 歲小嬰兒", "聽不懂地球語言的外星人"],
+          yellowTone: ["溫柔瘋狂稱讚的語氣", "嚴肅像機器人的專業語氣", "神秘像講鬼故事的語氣", "熱血沸騰大吼大叫的語氣"],
+          redFormat: ["裡面必須大量使用 Emoji", "前面必須幫自己取一個誇張動漫稱號", "寫得像一首押韻的詩", "每句話結尾要有動物叫聲"]
+        };
+
+        let state = {
+            round: 1,
+            group: null,
+            role: null,
+            selections: {
+                location: null,
+                target: null,
+                tone: null,
+                tool: null,
+                action: null,
+                format: null
+            }
+        };
+
+        // UI Updates
+        function checkReadiness() {
+            const btn = document.getElementById('submit-btn');
+            
+            if (state.round === 1) {
+                const ready = state.selections.location && state.selections.target && state.selections.tone;
+                btn.disabled = !ready;
+            } else if (state.round === 2) {
+                const ready = !!(state.selections.tool && state.selections.action);
+                btn.disabled = !ready;
+            } else if (state.round === 3) {
+                const ready = !!state.selections.format;
+                btn.disabled = !ready;
+            }
+        }
+
+        function setSelection(category, value) {
+            state.selections[category] = value;
+            
+            // Update sentence placeholder
+            const spanEl = document.getElementById(`text-${category}`);
+            if (spanEl) {
+                spanEl.innerText = value;
+            }
+            
+            // Highlight selected button
+            const containerMapping = {
+                'location': 'options-blue',
+                'target': 'options-yellow-target',
+                'tone': 'options-yellow-tone',
+                'tool': 'options-green-tool',
+                'action': 'options-green-action',
+                'format': 'options-red'
+            };
+            
+            const containerId = containerMapping[category];
+            const buttons = document.getElementById(containerId).querySelectorAll('button');
+            
+            buttons.forEach(btn => {
+                if(btn.dataset.val === value) {
+                    btn.className = "neo-btn-active";
+                } else {
+                    btn.className = "neo-btn-inactive";
+                }
+            });
+            
+            checkReadiness();
+        }
+
+        function renderOptions(containerId, options, category) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = options.map(opt => `
+                <button data-val="${opt}" onclick="setSelection('${category}', '${opt}')" class="neo-btn-inactive">
+                    ${opt}
+                </button>
+            `).join('');
+        }
+
+        // Logic
+        function selectGroup(groupId) {
+            state.group = JOB_GROUPS.find(g => g.id === groupId);
+            
+            document.getElementById('view-1-groups').classList.add('hidden');
+            document.getElementById('view-1-roles').classList.remove('hidden');
+            
+            document.getElementById('role-selection-title').innerText = `【${state.group.name}】 請選擇你的機密身分...`;
+            
+            const roleGrid = document.getElementById('role-grid');
+            roleGrid.innerHTML = state.group.roles.map(role => `
+                <div onclick="selectRole('${role.name}')" class="neo-card flex flex-col p-6 text-left hover:bg-slate-50">
+                    <div class="text-5xl mb-4">${role.icon}</div>
+                    <h2 class="text-2xl font-bold text-[#3B5998] mb-3">${role.name}</h2>
+                    <div class="space-y-1 text-sm font-semibold text-[#3B5998]/70 mt-auto">
+                        <p>⚔️ 專屬武器: ${role.weapon}</p>
+                        <p>🎯 核心任務: ${role.task}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function backToGroups() {
+            state.group = null;
+            document.getElementById('view-1-roles').classList.add('hidden');
+            document.getElementById('view-1-groups').classList.remove('hidden');
+        }
+
+        function selectRole(roleName) {
+            state.role = state.group.roles.find(r => r.name === roleName);
+            
+            document.getElementById('view-1-roles').classList.add('hidden');
+            document.getElementById('view-2').classList.remove('hidden');
+            document.getElementById('top-nav').classList.remove('hidden');
+            
+            document.getElementById('current-role-icon').innerText = state.role.icon;
+            document.getElementById('current-role-name').innerText = state.role.name;
+            
+            // Build Prompt Builder Options
+            renderOptions('options-blue', OPTIONS.blueLocation, 'location');
+            renderOptions('options-yellow-target', OPTIONS.yellowTarget, 'target');
+            renderOptions('options-yellow-tone', OPTIONS.yellowTone, 'tone');
+            renderOptions('options-green-tool', state.role.green_tools, 'tool');
+            renderOptions('options-green-action', state.role.green_actions, 'action');
+            renderOptions('options-red', OPTIONS.redFormat, 'format');
+        }
+
+        function getYellowPrefix(tone) {
+            if(tone.includes("溫柔")) return "哇！你真的是太棒了！";
+            if(tone.includes("嚴肅")) return "偵測到目標。請注意。";
+            if(tone.includes("神秘")) return "嘻嘻...你聽得到我的聲音嗎...";
+            if(tone.includes("熱血")) return "喔喔喔喔！燃燒吧！";
+            return "";
+        }
+
+        function pushOutput(text) {
+            const out = document.getElementById('chat-output');
+            const div = document.createElement('div');
+            div.className = "bg-slate-50 p-3 rounded-xl border-2 border-transparent text-[#3B5998] font-medium leading-relaxed shadow-sm";
+            div.innerHTML = `<div class="font-bold text-xs mb-1 opacity-60">回合 ${state.round} 產出</div>${text}`;
+            out.appendChild(div);
+            
+            // Auto scroll to bottom
+            setTimeout(() => {
+                out.scrollTo({
+                    top: out.scrollHeight,
+                    behavior: 'smooth'
+                });
+            }, 10);
+        }
+
+        function handleGenerate() {
+            let mockData = "";
+            const prefix = getYellowPrefix(state.selections.tone);
+            const btn = document.getElementById('submit-btn');
+
+            if (state.round === 1) {
+                mockData = `${prefix} 我要告訴你一個秘密，其實我就是棒球場的【${state.role.name}】啦！我平常都待在【${state.selections.location}】，這就是我的工作！`;
+                pushOutput(mockData);
+                
+                state.round = 2;
+                document.getElementById('block-green').classList.remove('opacity-50', 'pointer-events-none');
+                document.getElementById('lock-green').classList.add('hidden');
+                btn.innerText = "生成內部測試草稿 (回合 2)";
+                
+            } else if (state.round === 2) {
+                mockData = `${prefix} 沒錯，我就是【${state.role.name}】！我正在【${state.selections.location}】。我剛剛拿出了我的『${state.selections.tool}』，並且『${state.selections.action}』。我很厲害吧！`;
+                pushOutput(mockData);
+                
+                state.round = 3;
+                document.getElementById('block-red').classList.remove('opacity-50', 'pointer-events-none');
+                document.getElementById('lock-red').classList.add('hidden');
+                btn.innerText = "生成最終機密情報 (回合 3)";
+                
+            } else if (state.round === 3) {
+                let base = `${prefix} 我正在【${state.selections.location}】執行最高機密任務。我拿出了我的『神秘法寶』，並且『${state.selections.action}』。你絕對猜不到我是做什麼的！`;
+                const format = state.selections.format;
+                
+                if(format.includes("Emoji")) base = base.replace(/([。！])/g, "$1 ⚾🔥✨😎");
+                if(format.includes("動漫稱號")) base = `【漆黑的球場守護者】\n` + base;
+                if(format.includes("押韻")) base += `\n「任務完成真開心，我的身分是機密！」`;
+                if(format.includes("動物叫聲")) base = base.replace(/([。！])/g, "(汪汪！)$1");
+                
+                pushOutput(base);
+                
+                btn.disabled = true;
+                btn.innerText = "任務已完成 ✅";
+                btn.classList.add('bg-slate-100', 'text-slate-500', 'border-slate-300');
+                btn.classList.remove('bg-[#FFD93D]', 'text-[#3B5998]', 'border-[#3B5998]');
+                return;
+            }
+            
+            checkReadiness();
+        }
+
+        function resetGame() {
+            state = {
+                round: 1,
+                group: null,
+                role: null,
+                selections: { location: null, target: null, tone: null, tool: null, action: null, format: null }
+            };
+            
+            // Clear placeholders
+            ['location', 'target', 'tone', 'tool', 'action', 'format'].forEach(cat => {
+                const el = document.getElementById(`text-${cat}`);
+                if (el) el.innerText = '';
+            });
+            
+            document.getElementById('view-1-groups').classList.remove('hidden');
+            document.getElementById('view-1-roles').classList.add('hidden');
+            document.getElementById('view-2').classList.add('hidden');
+            document.getElementById('top-nav').classList.add('hidden');
+            
+            document.getElementById('chat-output').innerHTML = '';
+            
+            const btn = document.getElementById('submit-btn');
+            btn.innerText = "生成內部測試草稿 (回合 1)";
+            btn.disabled = true;
+            btn.classList.remove('bg-slate-100', 'text-slate-500', 'border-slate-300');
+            btn.classList.add('bg-[#FFD93D]', 'text-[#3B5998]', 'border-[#3B5998]');
+            
+            document.getElementById('block-green').classList.add('opacity-50', 'pointer-events-none');
+            document.getElementById('lock-green').classList.remove('hidden');
+            document.getElementById('block-red').classList.add('opacity-50', 'pointer-events-none');
+            document.getElementById('lock-red').classList.remove('hidden');
+            
+            initGroups();
+        }
+
+        function initGroups() {
+            const groupGrid = document.getElementById('group-grid');
+            groupGrid.innerHTML = JOB_GROUPS.map(g => `
+                <div onclick="selectGroup('${g.id}')" class="neo-card p-6 flex items-center gap-4 hover:bg-slate-50">
+                    <div class="text-5xl shrink-0">${g.icon}</div>
+                    <div>
+                        <h2 class="text-xl font-bold text-[#3B5998] mb-1">${g.name}</h2>
+                        <p class="text-sm font-semibold text-[#3B5998]/70">${g.description}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Boot
+        window.addEventListener('DOMContentLoaded', () => {
+            initGroups();
+        });
+    </script>
+</body>
+</html>
