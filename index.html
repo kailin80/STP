@@ -23034,7 +23034,7 @@ round3: "座標設定於球場旁的摩天大樓裡汪。目標鎖定超級生�
                 if (customTextTemplate) {
                     outputText = processTemplate(customTextTemplate, prefix);
                 } else {
-                    outputText = `${prefix} 我要告訴你一個秘密，其實我就是棒球場的【${state.role.name}】啦！我平常都待在【${state.selections.location}】，這就是我的工作！`;
+                    outputText = `${prefix} 我要告訴你一個秘密，其實我就是棒球場的 ${state.role.name} 啦！但是我不是在 ${state.selections.location} 工作，要不要再想想呢！`;
                 }
                 pushOutput(outputText);
                 
@@ -23047,7 +23047,7 @@ round3: "座標設定於球場旁的摩天大樓裡汪。目標鎖定超級生�
                 if (customTextTemplate) {
                     outputText = processTemplate(customTextTemplate, prefix);
                 } else {
-                    outputText = `${prefix} 沒錯，我就是【${state.role.name}】！我正在【${state.selections.location}】。這時有一位『${state.selections.target}』走過來，我決定拿出了我的『${state.selections.tool}』，並且『${state.selections.action}』。我很厲害吧！`;
+                    outputText = `${prefix} 沒錯，我就是【${state.role.name}】！我正在 ${state.selections.location} 。這時有一位『${state.selections.target}』走過來，但是我發現手中的工具好像無法處理狀況，我們換個工具和動作吧！`;
                 }
                 pushOutput(outputText);
                 
